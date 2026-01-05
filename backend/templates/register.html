@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow p-4">
+            <h3 class="text-center mb-4">Register</h3>
+            <form method="POST" action="{{ url_for('auth.register') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Register</button>
+            </form>
+            <p class="mt-3 text-center">
+                Already have an account? <a href="{{ url_for('auth.login') }}">Login</a>
+            </p>
+            {% for msg in get_flashed_messages() %}
+            <p class="text-danger text-center">{{ msg }}</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+<h2>Register</h2>
+
+<form method="post">
+    <input name="username" placeholder="Username" required><br><br>
+    <input name="password" type="password" placeholder="Password" required><br><br>
+    <button type="submit">Register</button>
+</form>
+
+<p>Already have account? <a href="/login">Login</a></p>
+
+{% for msg in get_flashed_messages() %}
+<p style="color:red">{{ msg }}</p>
+{% endfor %}
+</body>
+</html> -->
