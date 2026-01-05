@@ -14,3 +14,10 @@ database/*.db
 # OS files
 .DS_Store
 Thumbs.db
+
+# Ignore virtual environment and cache files
+venv/
+__pycache__/
+*.pyc
+.env
+

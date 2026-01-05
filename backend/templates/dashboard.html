@@ -2,71 +2,85 @@
 {% block content %}
 
 <div class="container mt-4">
-  <h2>Welcome, {{ current_user.username }} 👋</h2>
+
+  <h3 class="mb-4">Welcome, {{ current_user.username }} 👋</h3>
 
   <!-- ADD TASK FORM -->
-  <form method="POST" class="card p-3 mt-3">
-    <input type="text" name="title" class="form-control mb-2" placeholder="Task Title" required>
+  <form method="POST" action="{{ url_for('routes.dashboard') }}" class="card p-3 mb-4 shadow-sm">
+    <div class="row g-2">
 
-    <textarea name="description" class="form-control mb-2" placeholder="Description"></textarea>
+      <div class="col-md-3">
+        <input type="text" name="title" class="form-control" placeholder="Task title" required>
+      </div>
 
-    <select name="priority" class="form-control mb-2">
-      <option>High</option>
-      <option selected>Medium</option>
-      <option>Low</option>
-    </select>
+      <div class="col-md-4">
+        <input type="text" name="description" class="form-control" placeholder="Description">
+      </div>
 
-    <input type="date" name="due_date" class="form-control mb-2">
+      <div class="col-md-2">
+        <select name="priority" class="form-select">
+          <option>Low</option>
+          <option selected>Medium</option>
+          <option>High</option>
+        </select>
+      </div>
 
-    <button class="btn btn-primary">Add Task</button>
+      <div class="col-md-2">
+        <input type="date" name="due_date" class="form-control">
+      </div>
+
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">+</button>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- TASK FILTERS -->
+  <div class="btn-group mb-4">
+    <a href="{{ url_for('routes.dashboard') }}" class="btn btn-outline-primary {% if not status %}active{% endif %}">All</a>
+    <a href="{{ url_for('routes.dashboard', status='pending') }}" class="btn btn-outline-warning {% if status == 'pending' %}active{% endif %}">Pending</a>
+    <a href="{{ url_for('routes.dashboard', status='completed') }}" class="btn btn-outline-success {% if status == 'completed' %}active{% endif %}">Completed</a>
+  </div>
+
+  <!-- SEARCH -->
+  <form method="GET" class="mb-3">
+    <div class="input-group">
+      <input type="text" name="search" class="form-control" placeholder="Search tasks..." value="{{ search or '' }}">
+      <button class="btn btn-outline-secondary">🔍</button>
+    </div>
   </form>
 
   <!-- TASK LIST -->
-  <ul class="list-group mt-4">
-    {% for task in tasks %}
-    <li class="list-group-item d-flex justify-content-between">
+  {% for task in tasks %}
+  <div class="card mb-2 shadow-sm {% if task.completed %}border-success{% endif %}">
+    <div class="card-body d-flex justify-content-between align-items-center">
+
       <div>
-        <strong>{{ task.title }}</strong>
-        <br>
-        <small>{{ task.priority }} | {{ task.due_date }}</small>
+        <h5 class="{% if task.completed %}text-decoration-line-through text-muted{% endif %}">
+          {{ task.title }}
+        </h5>
+
+        <small>
+          {{ task.priority }} |
+          {{ task.due_date or "N/A" }}
+        </small>
       </div>
 
       <div>
-        <a href="/task/complete/{{ task.id }}" class="btn btn-success btn-sm">✔</a>
-        <a href="/task/delete/{{ task.id }}" class="btn btn-danger btn-sm">🗑</a>
+        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}">✏</button>
+        {% if not task.completed %}
+        <a href="{{ url_for('routes.complete_task', id=task.id) }}" class="btn btn-outline-success btn-sm">✔</a>
+        {% endif %}
+        <a href="{{ url_for('routes.delete_task', id=task.id) }}" class="btn btn-outline-danger btn-sm">🗑</a>
       </div>
-    </li>
-    {% endfor %}
-  </ul>
+
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted text-center">No tasks added yet.</p>
+  {% endfor %}
+
 </div>
 
 {% endblock %}
-
-<h4 class="mt-4">My Tasks</h4>
-
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Title</th>
-      <th>Priority</th>
-      <th>Due Date</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for task in tasks %}
-    <tr>
-      <td>{{ task.title }}</td>
-      <td>{{ task.priority }}</td>
-      <td>{{ task.due_date }}</td>
-      <td>
-        {% if task.completed %}
-          ✅ Done
-        {% else %}
-          ⏳ Pending
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>

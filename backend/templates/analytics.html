@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+  <h3 class="mb-4">📊 Task Analytics</h3>
+
+  <div class="mb-3">
+  <a href="{{ url_for('routes.export_csv') }}" class="btn btn-outline-primary me-2">
+    ⬇ Export CSV
+  </a>
+
+  <a href="{{ url_for('routes.export_pdf') }}" class="btn btn-outline-danger">
+    ⬇ Export PDF
+  </a>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <h5>🔥 Productivity Score</h5>
+
+        <div class="progress" style="height: 25px;">
+          <div class="progress-bar bg-success"
+               style="width: {{ productivity_score }}%;">
+            {{ productivity_score }}%
+          </div>
+        </div>
+
+        <small class="text-muted mt-2 d-block">
+          Based on completed tasks
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h5>Total Tasks</h5>
+          <h2>{{ total_tasks }}</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm border-success">
+        <div class="card-body">
+          <h5>Completed</h5>
+          <h2>{{ completed_tasks }}</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm border-warning">
+        <div class="card-body">
+          <h5>Pending</h5>
+          <h2>{{ pending_tasks }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="row">
+
+    <div class="col-md-6">
+      <canvas id="completionChart"></canvas>
+    </div>
+
+    <div class="col-md-6">
+      <canvas id="priorityChart"></canvas>
+    </div>
+
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <canvas id="weeklyChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- CHART JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Completion Chart
+  new Chart(document.getElementById('completionChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Completed', 'Pending'],
+      datasets: [{
+        data: [{{ completed_tasks }}, {{ pending_tasks }}],
+        backgroundColor: ['#198754', '#ffc107']
+      }]
+    }
+  });
+
+  // Priority Chart
+  new Chart(document.getElementById('priorityChart'), {
+    type: 'pie',
+    data: {
+      labels: {{ priorities | tojson }},
+      datasets: [{
+        data: {{ priority_counts | tojson }},
+        backgroundColor: ['#dc3545', '#ffc107', '#198754']
+      }]
+    }
+  });
+
+  // Weekly Productivity
+  new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ week_dates | tojson }},
+      datasets: [{
+        label: 'Tasks',
+        data: {{ week_counts | tojson }},
+        backgroundColor: '#0d6efd'
+      }]
+    }
+  });
+</script>
+
+{% endblock %}
