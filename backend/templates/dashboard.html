@@ -1,33 +1,72 @@
-
 {% extends "base.html" %}
-
 {% block content %}
-<div class="container mt-5">
-  <div class="card shadow p-4 text-center">
-    <h2>Welcome, {{ username }} 🎉</h2>
-    <p class="text-muted">You are logged in successfully.</p>
 
-    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger mt-3">
-      Logout
-    </a>
-  </div>
+<div class="container mt-4">
+  <h2>Welcome, {{ current_user.username }} 👋</h2>
+
+  <!-- ADD TASK FORM -->
+  <form method="POST" class="card p-3 mt-3">
+    <input type="text" name="title" class="form-control mb-2" placeholder="Task Title" required>
+
+    <textarea name="description" class="form-control mb-2" placeholder="Description"></textarea>
+
+    <select name="priority" class="form-control mb-2">
+      <option>High</option>
+      <option selected>Medium</option>
+      <option>Low</option>
+    </select>
+
+    <input type="date" name="due_date" class="form-control mb-2">
+
+    <button class="btn btn-primary">Add Task</button>
+  </form>
+
+  <!-- TASK LIST -->
+  <ul class="list-group mt-4">
+    {% for task in tasks %}
+    <li class="list-group-item d-flex justify-content-between">
+      <div>
+        <strong>{{ task.title }}</strong>
+        <br>
+        <small>{{ task.priority }} | {{ task.due_date }}</small>
+      </div>
+
+      <div>
+        <a href="/task/complete/{{ task.id }}" class="btn btn-success btn-sm">✔</a>
+        <a href="/task/delete/{{ task.id }}" class="btn btn-danger btn-sm">🗑</a>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
 </div>
+
 {% endblock %}
 
+<h4 class="mt-4">My Tasks</h4>
 
-
-
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-</head>
-<body>
-    <h1>Welcome, {{ user.username }}!</h1>
-    <p>This is your dashboard.</p>
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
-</body>
-</html> -->
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Priority</th>
+      <th>Due Date</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for task in tasks %}
+    <tr>
+      <td>{{ task.title }}</td>
+      <td>{{ task.priority }}</td>
+      <td>{{ task.due_date }}</td>
+      <td>
+        {% if task.completed %}
+          ✅ Done
+        {% else %}
+          ⏳ Pending
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

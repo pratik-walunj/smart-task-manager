@@ -1,5 +1,6 @@
-from .app import db
+from datetime import date
 from flask_login import UserMixin
+from .app import db
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -10,8 +11,14 @@ class User(UserMixin, db.Model):
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    priority = db.Column(db.String(20), default="MEDIUM")
-    status = db.Column(db.String(20), default="PENDING")
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    priority = db.Column(db.String(10), default="Medium")
+    due_date = db.Column(db.Date)
+    completed = db.Column(db.Boolean, default=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+
+
+
+
