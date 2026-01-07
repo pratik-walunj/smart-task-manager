@@ -13,19 +13,22 @@ from .app import db
 
 routes = Blueprint("routes", __name__)
 
-# ---------------- DASHBOARD + ADD TASK + SEARCH ----------------
+# ---------------- DASHBOARD ----------------
 @routes.route("/dashboard", methods=["GET", "POST"])
 @login_required
 def dashboard():
 
-    # ADD TASK
+    # ================= ADD TASK =================
     if request.method == "POST":
         title = request.form.get("title")
         description = request.form.get("description")
         priority = request.form.get("priority")
         due_date_str = request.form.get("due_date")
 
-        due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date() if due_date_str else None
+        due_date = (
+            datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            if due_date_str else None
+        )
 
         task = Task(
             title=title,
@@ -39,7 +42,7 @@ def dashboard():
         db.session.commit()
         return redirect(url_for("routes.dashboard"))
 
-    # FILTER & SEARCH
+    # ================= FILTER & SEARCH =================
     status = request.args.get("status")
     search = request.args.get("search", "").strip()
 
@@ -56,14 +59,66 @@ def dashboard():
             Task.description.ilike(f"%{search}%")
         )
 
+    # ================= FETCH TASKS =================
     tasks = query.all()
 
+    # ================= 🧠 AI TASK SUGGESTIONS =================
+    suggestions = []
+
+    total_tasks = Task.query.filter_by(user_id=current_user.id).count()
+    pending_tasks = Task.query.filter_by(
+        user_id=current_user.id,
+        completed=False
+    ).count()
+
+    high_priority_pending = Task.query.filter_by(
+        user_id=current_user.id,
+        completed=False,
+        priority="High"
+    ).count()
+
+    today = date.today()
+    overdue_tasks = Task.query.filter(
+        Task.user_id == current_user.id,
+        Task.completed == False,
+        Task.due_date < today
+    ).count()
+
+    # -------- RULE-BASED AI LOGIC --------
+    if high_priority_pending > 0:
+        suggestions.append(
+            "⚠️ You have high-priority tasks pending. Try completing them first."
+        )
+
+    if overdue_tasks > 0:
+        suggestions.append(
+            "📅 Some tasks are overdue. Plan a quick catch-up session."
+        )
+
+    if pending_tasks == 0 and total_tasks > 0:
+        suggestions.append(
+            "🎉 Amazing! All tasks are done. Add a new goal to stay productive."
+        )
+
+    if total_tasks == 0:
+        suggestions.append(
+            "🚀 Start strong! Add your first task to begin your productivity journey."
+        )
+
+    if not suggestions:
+        suggestions.append(
+            "💡 Keep going! Consistency is the key to productivity."
+        )
+
+    # ================= RENDER TEMPLATE =================
     return render_template(
         "dashboard.html",
         tasks=tasks,
         status=status,
-        search=search
+        search=search,
+        suggestions=suggestions
     )
+
 
 # ---------------- DELETE TASK ----------------
 @routes.route("/task/delete/<int:id>")
@@ -82,6 +137,7 @@ def complete_task(id):
     task = Task.query.get_or_404(id)
     if task.user_id == current_user.id:
         task.completed = True
+        task.completed_at = date.today()   # ✅ STREAK SUPPORT
         db.session.commit()
     return redirect(url_for("routes.dashboard"))
 
@@ -99,7 +155,10 @@ def edit_task(id):
     task.priority = request.form.get("priority")
 
     due_date_str = request.form.get("due_date")
-    task.due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date() if due_date_str else None
+    task.due_date = (
+        datetime.strptime(due_date_str, "%Y-%m-%d").date()
+        if due_date_str else None
+    )
 
     db.session.commit()
     return redirect(url_for("routes.dashboard"))
@@ -110,11 +169,49 @@ def edit_task(id):
 def analytics():
 
     total_tasks = Task.query.filter_by(user_id=current_user.id).count()
-    completed_tasks = Task.query.filter_by(user_id=current_user.id, completed=True).count()
+    completed_tasks = Task.query.filter_by(
+        user_id=current_user.id,
+        completed=True
+    ).count()
+
     pending_tasks = total_tasks - completed_tasks
 
-    productivity_score = int((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
+    productivity_score = (
+        int((completed_tasks / total_tasks) * 100)
+        if total_tasks > 0 else 0
+    )
 
+    # 🏆 PRODUCTIVITY BADGE
+    if productivity_score < 40:
+        productivity_badge = "Low"
+    elif productivity_score < 70:
+        productivity_badge = "Medium"
+    else:
+        productivity_badge = "High"
+
+    # 🔥 STREAK SYSTEM
+    completed_dates = (
+        db.session.query(Task.completed_at)
+        .filter(
+            Task.user_id == current_user.id,
+            Task.completed == True,
+            Task.completed_at != None
+        )
+        .distinct()
+        .order_by(Task.completed_at.desc())
+        .all()
+    )
+
+    streak = 0
+    today = date.today()
+
+    for d in completed_dates:
+        if d[0] == today - timedelta(days=streak):
+            streak += 1
+        else:
+            break
+
+    # PRIORITY DISTRIBUTION
     priority_data = (
         db.session.query(Task.priority, func.count(Task.id))
         .filter_by(user_id=current_user.id)
@@ -125,7 +222,7 @@ def analytics():
     priorities = [p[0] for p in priority_data]
     priority_counts = [p[1] for p in priority_data]
 
-    today = date.today()
+    # WEEKLY PRODUCTIVITY
     week_ago = today - timedelta(days=6)
 
     weekly_data = (
@@ -148,6 +245,8 @@ def analytics():
         completed_tasks=completed_tasks,
         pending_tasks=pending_tasks,
         productivity_score=productivity_score,
+        productivity_badge=productivity_badge,
+        streak=streak,                      # ✅ PASS STREAK
         priorities=priorities,
         priority_counts=priority_counts,
         week_dates=week_dates,
@@ -189,7 +288,9 @@ def export_pdf():
 
     for task in tasks:
         status = "Completed" if task.completed else "Pending"
-        text.textLine(f"{task.title} | {task.priority} | {task.due_date} | {status}")
+        text.textLine(
+            f"{task.title} | {task.priority} | {task.due_date} | {status}"
+        )
 
     pdf.drawText(text)
     pdf.showPage()

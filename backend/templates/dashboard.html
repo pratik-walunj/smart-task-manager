@@ -6,15 +6,18 @@
   <h3 class="mb-4">Welcome, {{ current_user.username }} 👋</h3>
 
   <!-- ADD TASK FORM -->
-  <form method="POST" action="{{ url_for('routes.dashboard') }}" class="card p-3 mb-4 shadow-sm">
+  <form method="POST" action="{{ url_for('routes.dashboard') }}"
+        class="card p-3 mb-4 shadow-sm">
     <div class="row g-2">
 
       <div class="col-md-3">
-        <input type="text" name="title" class="form-control" placeholder="Task title" required>
+        <input type="text" name="title" class="form-control"
+               placeholder="Task title" required>
       </div>
 
       <div class="col-md-4">
-        <input type="text" name="description" class="form-control" placeholder="Description">
+        <input type="text" name="description" class="form-control"
+               placeholder="Description">
       </div>
 
       <div class="col-md-2">
@@ -37,16 +40,28 @@
   </form>
 
   <!-- TASK FILTERS -->
-  <div class="btn-group mb-4">
-    <a href="{{ url_for('routes.dashboard') }}" class="btn btn-outline-primary {% if not status %}active{% endif %}">All</a>
-    <a href="{{ url_for('routes.dashboard', status='pending') }}" class="btn btn-outline-warning {% if status == 'pending' %}active{% endif %}">Pending</a>
-    <a href="{{ url_for('routes.dashboard', status='completed') }}" class="btn btn-outline-success {% if status == 'completed' %}active{% endif %}">Completed</a>
+  <div class="btn-group mb-3">
+    <a href="{{ url_for('routes.dashboard') }}"
+       class="btn btn-outline-primary {% if not status %}active{% endif %}">
+      All
+    </a>
+
+    <a href="{{ url_for('routes.dashboard', status='pending') }}"
+       class="btn btn-outline-warning {% if status == 'pending' %}active{% endif %}">
+      Pending
+    </a>
+
+    <a href="{{ url_for('routes.dashboard', status='completed') }}"
+       class="btn btn-outline-success {% if status == 'completed' %}active{% endif %}">
+      Completed
+    </a>
   </div>
 
   <!-- SEARCH -->
-  <form method="GET" class="mb-3">
+  <form method="GET" class="mb-4">
     <div class="input-group">
-      <input type="text" name="search" class="form-control" placeholder="Search tasks..." value="{{ search or '' }}">
+      <input type="text" name="search" class="form-control"
+             placeholder="Search tasks..." value="{{ search or '' }}">
       <button class="btn btn-outline-secondary">🔍</button>
     </div>
   </form>
@@ -56,31 +71,116 @@
   <div class="card mb-2 shadow-sm {% if task.completed %}border-success{% endif %}">
     <div class="card-body d-flex justify-content-between align-items-center">
 
+      <!-- LEFT: TASK INFO -->
       <div>
         <h5 class="{% if task.completed %}text-decoration-line-through text-muted{% endif %}">
           {{ task.title }}
         </h5>
-
         <small>
-          {{ task.priority }} |
-          {{ task.due_date or "N/A" }}
+          {{ task.priority }} | {{ task.due_date or "N/A" }}
         </small>
       </div>
 
-      <div>
-        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}">✏</button>
+      <!-- RIGHT: ACTION BUTTONS -->
+      <div class="d-flex gap-1">
+
+        <!-- EDIT BUTTON -->
+        <button class="btn btn-outline-primary btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#editModal{{ task.id }}">
+          ✏️
+        </button>
+
         {% if not task.completed %}
-        <a href="{{ url_for('routes.complete_task', id=task.id) }}" class="btn btn-outline-success btn-sm">✔</a>
+        <a href="{{ url_for('routes.complete_task', id=task.id) }}"
+           class="btn btn-outline-success btn-sm">
+          ✔
+        </a>
         {% endif %}
-        <a href="{{ url_for('routes.delete_task', id=task.id) }}" class="btn btn-outline-danger btn-sm">🗑</a>
+
+        <a href="{{ url_for('routes.delete_task', id=task.id) }}"
+           class="btn btn-outline-danger btn-sm">
+          🗑
+        </a>
       </div>
 
     </div>
   </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal fade" id="editModal{{ task.id }}" tabindex="-1">
+    <div class="modal-dialog">
+      <form method="POST"
+            action="{{ url_for('routes.edit_task', id=task.id) }}"
+            class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Task</h5>
+          <button type="button" class="btn-close"
+                  data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <div class="mb-2">
+            <label>Title</label>
+            <input type="text" name="title"
+                   class="form-control"
+                   value="{{ task.title }}" required>
+          </div>
+
+          <div class="mb-2">
+            <label>Description</label>
+            <textarea name="description"
+                      class="form-control">{{ task.description }}</textarea>
+          </div>
+
+          <div class="mb-2">
+            <label>Priority</label>
+            <select name="priority" class="form-select">
+              <option {% if task.priority == "Low" %}selected{% endif %}>Low</option>
+              <option {% if task.priority == "Medium" %}selected{% endif %}>Medium</option>
+              <option {% if task.priority == "High" %}selected{% endif %}>High</option>
+            </select>
+          </div>
+
+          <div class="mb-2">
+            <label>Due Date</label>
+            <input type="date" name="due_date"
+                   class="form-control"
+                   value="{{ task.due_date }}">
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-primary">Save Changes</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
   {% else %}
   <p class="text-muted text-center">No tasks added yet.</p>
   {% endfor %}
 
+  {% if suggestions %}
+<div class="card mt-4 shadow-sm">
+  <div class="card-body">
+    <h6>🧠 AI Suggestions</h6>
+    <ul class="mb-0">
+      {% for tip in suggestions %}
+        <li>{{ tip }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+
+
 </div>
 
 {% endblock %}
+
+
