@@ -1,160 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Smart Task Manager{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Smart Task Manager{% endblock %}</title>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- PWA -->
+  <link rel="manifest" href="{{ url_for('static', filename='pwa/manifest.json') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+  <meta name="theme-color" content="#0d6efd">
 
-    <!-- DARK MODE STYLES -->
-    <style>
+  <!-- Dark Mode Styles -->
+  <style>
     body.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
-   }
+      background-color: #121212;
+      color: #e0e0e0;
+    }
 
-    /* Navbar */
     body.dark-mode .navbar {
-    background-color: #1f1f1f !important;
-  }
+      background-color: #1f1f1f !important;
+    }
 
-   /* Cards */
     body.dark-mode .card {
-    background-color: #1e1e1e;
-    border-color: #333;
- }
+      background-color: #1e1e1e;
+      border-color: #333;
+    }
 
-   /* Buttons */
-   body.dark-mode .btn-outline-primary,
-   body.dark-mode .btn-outline-secondary,
-   body.dark-mode .btn-outline-success,
-   body.dark-mode .btn-outline-warning,
-   body.dark-mode .btn-outline-danger {
-    color: #e0e0e0;
-    border-color: #555;
- }
-
-  body.dark-mode .btn-outline-primary:hover,
-  body.dark-mode .btn-outline-secondary:hover,
-  body.dark-mode .btn-outline-success:hover,
-  body.dark-mode .btn-outline-warning:hover,
-  body.dark-mode .btn-outline-danger:hover {
-    background-color: #333;
-    color: #fff;
- }
-
-  /* Form controls */
-  body.dark-mode .form-control,
-  body.dark-mode .form-select {
-    background-color: #2a2a2a;
-    color: #f0f0f0;
-    border-color: #555;
- }
-
-  body.dark-mode .form-control::placeholder {
-    color: #aaa;
- }
-
-  /* Modals */
-  body.dark-mode .modal-content {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
- }
-
-  /* Badges */
-  body.dark-mode .badge.bg-danger { background-color: #ff6b6b; }
-  body.dark-mode .badge.bg-warning { background-color: #ffc107; color: #212529; }
-  body.dark-mode .badge.bg-success { background-color: #4caf50; }
-  body.dark-mode .badge.bg-info { background-color: #0dcaf0; color: #000; }
-
-  /* Inputs & Date picker hover */
-  body.dark-mode input[type="date"]:focus,
-  body.dark-mode input[type="text"]:focus,
-  body.dark-mode select:focus {
-    background-color: #2a2a2a;
-    color: #fff;
-    border-color: #00bcd4;
-    box-shadow: 0 0 0 0.25rem rgba(0, 188, 212, 0.25);
- }
-</style>
-
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+      background-color: #2a2a2a;
+      color: #f0f0f0;
+      border-color: #555;
+    }
+  </style>
 </head>
+
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('routes.dashboard') }}">Smart Task Manager</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item me-2">
-                            <!-- Dark Mode Toggle -->
-                            <button id="darkModeToggle" class="btn btn-outline-secondary btn-sm">🌙 Dark Mode</button>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('routes.dashboard') }}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('routes.analytics') }}">📊 Analytics</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
-                        </li>
-                        
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('routes.dashboard') }}">Smart Task Manager</a>
 
-    <div class="container mt-5">
-        {% block content %}{% endblock %}
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-center">
+
+        {% if current_user.is_authenticated %}
+        <li class="nav-item me-2">
+          <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
+            🌙 Dark Mode
+          </button>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('routes.dashboard') }}">Dashboard</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('routes.analytics') }}">Analytics</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+        </li>
+        {% endif %}
+
+      </ul>
     </div>
+  </div>
+</nav>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<div class="container mt-5">
+  {% block content %}{% endblock %}
+</div>
 
-    <!-- DARK MODE TOGGLE SCRIPT -->
-    <script>
-        const toggleBtn = document.getElementById('darkModeToggle');
+<!-- Install Button -->
+<button id="installBtn"
+  class="btn btn-success position-fixed bottom-0 end-0 m-4"
+  style="display:none; z-index:9999;">
+  📲 Install App
+</button>
 
-        // Load saved mode
-        if (localStorage.getItem('darkMode') === 'enabled') {
-            document.body.classList.add('dark-mode');
-            toggleBtn.textContent = '☀ Light Mode';
-        }
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        toggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
+<!-- Dark Mode Script (SAFE) -->
+<script>
+  const toggleBtn = document.getElementById("darkModeToggle");
 
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('darkMode', 'enabled');
-                toggleBtn.textContent = '☀ Light Mode';
-            } else {
-                localStorage.setItem('darkMode', 'disabled');
-                toggleBtn.textContent = '🌙 Dark Mode';
-            }
-        });
-    </script>
+  if (toggleBtn) {
+    if (localStorage.getItem("darkMode") === "enabled") {
+      document.body.classList.add("dark-mode");
+      toggleBtn.textContent = "☀ Light Mode";
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+
+      if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("darkMode", "enabled");
+        toggleBtn.textContent = "☀ Light Mode";
+      } else {
+        localStorage.setItem("darkMode", "disabled");
+        toggleBtn.textContent = "🌙 Dark Mode";
+      }
+    });
+  }
+</script>
+
+<!-- Service Worker -->
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register(
+      "{{ url_for('static', filename='pwa/service-worker.js') }}"
+    );
+  }
+</script>
+
+<!-- Install Prompt -->
+<script>
+  let deferredPrompt;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById("installBtn").style.display = "block";
+  });
+
+  document.getElementById("installBtn").addEventListener("click", () => {
+    if (deferredPrompt) deferredPrompt.prompt();
+  });
+</script>
+
 </body>
 </html>

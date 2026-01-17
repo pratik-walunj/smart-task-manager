@@ -303,3 +303,15 @@ def export_pdf():
         mimetype="application/pdf",
         headers={"Content-Disposition": "attachment; filename=tasks.pdf"}
     )
+
+
+
+@routes.route("/")
+def home():
+    return redirect(url_for("routes.login"))
+
+
+@routes.route("/login")
+def login():
+    return render_template("login.html")
+
