@@ -50,8 +50,7 @@ A **Flask-based Smart Task Manager** that helps users manage tasks efficiently w
 * Optional dark mode support (future-ready)
 
   ## 🚀 Live Demo
-https://your-render-link.onrender.com
-
+  https://smart-task-manager-1-0q0c.onrender.com/
 ---
 
 ## 🗂️ Project Structure
